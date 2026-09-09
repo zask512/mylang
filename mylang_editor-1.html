@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="ur-Latn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyLang Takhti — Apna Code Likho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --board: #1E3A2B;
+    --board-dark: #16301F;
+    --chalk: #F3F0E6;
+    --chalk-dim: #B9C9BE;
+    --chalk-yellow: #E8C468;
+    --chalk-blue: #8FC1D9;
+    --chalk-red: #E0735F;
+    --rule: rgba(243,240,230,0.10);
+    --margin: #A6473A;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--board);
+    background-image:
+      radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 3px 3px, 7px 7px;
+    background-position: 0 0, 2px 3px;
+    color: var(--chalk);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    padding: 20px 14px 40px;
+  }
+
+  .wrap { max-width: 760px; margin: 0 auto; }
+
+  header { margin-bottom: 18px; }
+
+  h1 {
+    font-family: 'Kalam', cursive;
+    font-weight: 700;
+    font-size: 2rem;
+    margin: 0 0 2px;
+    color: var(--chalk);
+    text-shadow: 0 0 1px rgba(243,240,230,0.3);
+  }
+
+  .subtitle {
+    font-family: 'Kalam', cursive;
+    color: var(--chalk-dim);
+    font-size: 1.05rem;
+    margin: 0;
+  }
+
+  .panel {
+    background: var(--board-dark);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    margin-top: 16px;
+    overflow: hidden;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--rule);
+    font-family: 'Kalam', cursive;
+    font-size: 0.95rem;
+    color: var(--chalk-yellow);
+  }
+
+  select#sample-select {
+    background: var(--board);
+    color: var(--chalk);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    padding: 4px 6px;
+  }
+
+  .editor-area {
+    position: relative;
+    display: flex;
+  }
+
+  .editor-area::before {
+    content: "";
+    width: 32px;
+    flex-shrink: 0;
+    border-right: 2px solid var(--margin);
+    opacity: 0.5;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 22px,
+      var(--rule) 23px
+    );
+  }
+
+  textarea#code {
+    flex: 1;
+    background: transparent;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 22px,
+      var(--rule) 23px
+    );
+    line-height: 23px;
+    color: var(--chalk);
+    border: none;
+    outline: none;
+    resize: vertical;
+    padding: 4px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem;
+    min-height: 260px;
+    width: 100%;
+  }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    border-top: 1px solid var(--rule);
+  }
+
+  button#run {
+    font-family: 'Kalam', cursive;
+    font-size: 1.1rem;
+    background: transparent;
+    color: var(--chalk-yellow);
+    border: 2px dashed var(--chalk-yellow);
+    border-radius: 6px;
+    padding: 8px 22px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  button#run:hover { background: var(--chalk-yellow); color: var(--board-dark); }
+  button#run:active { transform: translateY(1px); }
+
+  button#clear {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    background: transparent;
+    color: var(--chalk-dim);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 7px 12px;
+    cursor: pointer;
+  }
+  button#clear:hover { color: var(--chalk); border-color: var(--chalk-dim); }
+
+  .hint { font-size: 0.75rem; color: var(--chalk-dim); font-family: 'JetBrains Mono', monospace; }
+
+  #output {
+    padding: 12px;
+    min-height: 90px;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 0.88rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  #output .line { padding: 1px 0; }
+  #output .error { color: var(--chalk-red); }
+  #output .empty { color: var(--chalk-dim); font-family: 'Kalam', cursive; }
+
+  .cheatsheet {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 12px;
+  }
+
+  .chip {
+    font-size: 0.72rem;
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    padding: 4px 10px;
+    color: var(--chalk-blue);
+  }
+  .chip b { color: var(--chalk-yellow); font-weight: 500; }
+
+  footer {
+    text-align: center;
+    margin-top: 22px;
+    color: var(--chalk-dim);
+    font-family: 'Kalam', cursive;
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 1.6rem; }
+    .editor-area::before { width: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>MyLang Takhti</h1>
+    <p class="subtitle">Apni pehli programming language — yahin likho, yahin chalao.</p>
+  </header>
+
+  <div class="panel">
+    <div class="panel-head">
+      <span>✎ Code</span>
+      <select id="sample-select">
+        <option value="">— Sample program chunain —</option>
+        <option value="variables">Variables</option>
+        <option value="loop">Loop</option>
+        <option value="function">Function</option>
+        <option value="list">List + Loop</option>
+        <option value="trycatch">Try / Catch</option>
+      </select>
+    </div>
+    <div class="editor-area">
+      <textarea id="code" spellcheck="false"></textarea>
+    </div>
+    <div class="controls">
+      <button id="run">▶ Chalao</button>
+      <button id="clear">Output saaf karo</button>
+      <span class="hint">Ctrl/Cmd + Enter se bhi chala sakte hain</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><span>▤ Output</span></div>
+    <div id="output"><div class="empty">Run dabao aur output yahan dekho...</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><span>? Commands</span></div>
+    <div class="cheatsheet">
+      <span class="chip"><b>likho</b> print</span>
+      <span class="chip"><b>sunlo()</b> input</span>
+      <span class="chip"><b>agar / warna</b> if / else</span>
+      <span class="chip"><b>jabtak</b> while</span>
+      <span class="chip"><b>har X mein L</b> for-each</span>
+      <span class="chip"><b>kaam banao</b> function</span>
+      <span class="chip"><b>wapas</b> return</span>
+      <span class="chip"><b>koshish / pakdo</b> try / catch</span>
+      <span class="chip"><b>sach / jhoot</b> true / false</span>
+      <span class="chip"><b># </b>comment</span>
+    </div>
+  </div>
+
+  <footer>SeekhoLang course ke saath istemaal ke liye banaya gaya</footer>
+</div>
+
+<script>
+/* =========================================================
+   MYLANG INTERPRETER (JavaScript port)
+========================================================= */
+class MyLangError extends Error {}
+class ReturnSignal { constructor(value){ this.value = value; } }
+class MyFunction { constructor(name, params, body, closureEnv){ Object.assign(this, {name, params, body, closureEnv}); } }
+
+const KEYWORDS = new Set(["likho","sunlo","agar","warna","jabtak","har","mein","kaam","banao","wapas","koshish","pakdo","sach","jhoot"]);
+
+const TOKEN_SPEC = [
+  ["COMMENT", /#[^\n]*/],
+  ["NEWLINE", /\n/],
+  ["NUMBER", /\d+(\.\d+)?/],
+  ["STRING", /"[^"]*"/],
+  ["EQ", /==/], ["NEQ", /!=/], ["LE", /<=/], ["GE", />=/],
+  ["ASSIGN", /=/], ["LT", /</], ["GT", />/],
+  ["PLUS", /\+/], ["MINUS", /-/], ["STAR", /\*/], ["SLASH", /\//],
+  ["LPAREN", /\(/], ["RPAREN", /\)/],
+  ["LBRACE", /\{/], ["RBRACE", /\}/],
+  ["LBRACK", /\[/], ["RBRACK", /\]/],
+  ["COMMA", /,/],
+  ["ID", /[a-zA-Z_][a-zA-Z0-9_]*/],
+  ["SKIP", /[ \t]+/],
+];
+const PATTERNS = TOKEN_SPEC.map(([name, re]) => [name, new RegExp('^(?:' + re.source + ')')]);
+
+function tokenize(src) {
+  const tokens = [];
+  let pos = 0;
+  while (pos < src.length) {
+    let matched = false;
+    const chunk = src.slice(pos);
+    for (const [name, re] of PATTERNS) {
+      const m = re.exec(chunk);
+      if (m) {
+        const text = m[0];
+        if (name !== 'SKIP' && name !== 'COMMENT') {
+          let kind = name;
+          if (name === 'ID' && KEYWORDS.has(text)) kind = text.toUpperCase();
+          tokens.push([kind, text]);
+        }
+        pos += text.length;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) throw new MyLangError(`Samajh nahi aya character: '${src[pos]}'`);
+  }
+  tokens.push(["EOF", ""]);
+  return tokens;
+}
+
+class Parser {
+  constructor(tokens){ this.tokens = tokens; this.pos = 0; }
+  peek(){ return this.tokens[this.pos]; }
+  advance(){ return this.tokens[this.pos++]; }
+  check(kind){ return this.peek()[0] === kind; }
+  expect(kind){
+    if (!this.check(kind)) throw new MyLangError(`Umeed thi '${kind}' ki, mila '${this.peek()[0]}'`);
+    return this.advance();
+  }
+  skipNewlines(){ while (this.check('NEWLINE')) this.advance(); }
+
+  parseProgram(){
+    const stmts = [];
+    this.skipNewlines();
+    while (!this.check('EOF')) { stmts.push(this.parseStatement()); this.skipNewlines(); }
+    return ['block', stmts];
+  }
+  parseBlock(){
+    this.expect('LBRACE'); this.skipNewlines();
+    const stmts = [];
+    while (!this.check('RBRACE')) { stmts.push(this.parseStatement()); this.skipNewlines(); }
+    this.expect('RBRACE');
+    return ['block', stmts];
+  }
+  parseStatement(){
+    const kind = this.peek()[0];
+    if (kind === 'LIKHO') { this.advance(); return ['print', this.parseExpr()]; }
+    if (kind === 'AGAR') {
+      this.advance(); this.expect('LPAREN'); const cond = this.parseExpr(); this.expect('RPAREN');
+      const thenBlock = this.parseBlock();
+      let elseBlock = null;
+      this.skipNewlines();
+      if (this.check('WARNA')) { this.advance(); elseBlock = this.parseBlock(); }
+      return ['if', cond, thenBlock, elseBlock];
+    }
+    if (kind === 'JABTAK') {
+      this.advance(); this.expect('LPAREN'); const cond = this.parseExpr(); this.expect('RPAREN');
+      return ['while', cond, this.parseBlock()];
+    }
+    if (kind === 'HAR') {
+      this.advance();
+      const varName = this.expect('ID')[1];
+      this.expect('MEIN');
+      const listExpr = this.parseExpr();
+      return ['foreach', varName, listExpr, this.parseBlock()];
+    }
+    if (kind === 'KAAM') {
+      this.advance(); this.expect('BANAO');
+      const name = this.expect('ID')[1];
+      this.expect('LPAREN');
+      const params = [];
+      if (!this.check('RPAREN')) {
+        params.push(this.expect('ID')[1]);
+        while (this.check('COMMA')) { this.advance(); params.push(this.expect('ID')[1]); }
+      }
+      this.expect('RPAREN');
+      return ['funcdef', name, params, this.parseBlock()];
+    }
+    if (kind === 'WAPAS') { this.advance(); return ['return', this.parseExpr()]; }
+    if (kind === 'KOSHISH') {
+      this.advance();
+      const tryBlock = this.parseBlock();
+      this.skipNewlines();
+      this.expect('PAKDO'); this.expect('LPAREN');
+      const errName = this.expect('ID')[1];
+      this.expect('RPAREN');
+      return ['try', tryBlock, errName, this.parseBlock()];
+    }
+    if (kind === 'ID' && this.tokens[this.pos + 1][0] === 'ASSIGN') {
+      const name = this.advance()[1];
+      this.advance();
+      return ['assign', name, this.parseExpr()];
+    }
+    if (kind === 'ID' && this.tokens[this.pos + 1][0] === 'LBRACK') {
+      const start = this.pos;
+      const name = this.advance()[1];
+      this.advance();
+      const indexExpr = this.parseExpr();
+      this.expect('RBRACK');
+      if (this.check('ASSIGN')) {
+        this.advance();
+        return ['index_assign', name, indexExpr, this.parseExpr()];
+      }
+      this.pos = start;
+    }
+    return ['expr_stmt', this.parseExpr()];
+  }
+  parseExpr(){ return this.parseComparison(); }
+  parseComparison(){
+    let left = this.parseAddition();
+    while (['EQ','NEQ','LT','GT','LE','GE'].includes(this.peek()[0])) {
+      const op = this.advance()[0];
+      left = ['binop', op, left, this.parseAddition()];
+    }
+    return left;
+  }
+  parseAddition(){
+    let left = this.parseTerm();
+    while (['PLUS','MINUS'].includes(this.peek()[0])) {
+      const op = this.advance()[0];
+      left = ['binop', op, left, this.parseTerm()];
+    }
+    return left;
+  }
+  parseTerm(){
+    let left = this.parseUnary();
+    while (['STAR','SLASH'].includes(this.peek()[0])) {
+      const op = this.advance()[0];
+      left = ['binop', op, left, this.parseUnary()];
+    }
+    return left;
+  }
+  parseUnary(){
+    if (this.check('MINUS')) { this.advance(); return ['neg', this.parseUnary()]; }
+    return this.parsePostfix();
+  }
+  parsePostfix(){
+    let node = this.parsePrimary();
+    while (this.check('LBRACK')) {
+      this.advance();
+      const indexExpr = this.parseExpr();
+      this.expect('RBRACK');
+      node = ['index', node, indexExpr];
+    }
+    return node;
+  }
+  parsePrimary(){
+    const [kind, text] = this.peek();
+    if (kind === 'NUMBER') { this.advance(); return ['num', text.includes('.') ? parseFloat(text) : parseInt(text, 10)]; }
+    if (kind === 'STRING') { this.advance(); return ['str', text.slice(1, -1)]; }
+    if (kind === 'SACH') { this.advance(); return ['bool', true]; }
+    if (kind === 'JHOOT') { this.advance(); return ['bool', false]; }
+    if (kind === 'LPAREN') { this.advance(); const e = this.parseExpr(); this.expect('RPAREN'); return e; }
+    if (kind === 'LBRACK') {
+      this.advance();
+      const items = [];
+      if (!this.check('RBRACK')) {
+        items.push(this.parseExpr());
+        while (this.check('COMMA')) { this.advance(); items.push(this.parseExpr()); }
+      }
+      this.expect('RBRACK');
+      return ['list', items];
+    }
+    if (kind === 'SUNLO') { this.advance(); this.expect('LPAREN'); this.expect('RPAREN'); return ['input']; }
+    if (kind === 'ID') {
+      const name = this.advance()[1];
+      if (this.check('LPAREN')) {
+        this.advance();
+        const args = [];
+        if (!this.check('RPAREN')) {
+          args.push(this.parseExpr());
+          while (this.check('COMMA')) { this.advance(); args.push(this.parseExpr()); }
+        }
+        this.expect('RPAREN');
+        return ['call', name, args];
+      }
+      return ['var', name];
+    }
+    throw new MyLangError(`Ye samajh nahi aya: '${text}'`);
+  }
+}
+
+class Environment {
+  constructor(parent = null) { this.vars = new Map(); this.parent = parent; }
+  get(name) {
+    if (this.vars.has(name)) return this.vars.get(name);
+    if (this.parent) return this.parent.get(name);
+    throw new MyLangError(`'${name}' naam ka variable nahi mila`);
+  }
+  set(name, value) {
+    let env = this;
+    while (env) { if (env.vars.has(name)) { env.vars.set(name, value); return; } env = env.parent; }
+    this.vars.set(name, value);
+  }
+  define(name, value) { this.vars.set(name, value); }
+}
+
+function stringify(v) {
+  if (typeof v === 'boolean') return v ? 'sach' : 'jhoot';
+  if (Array.isArray(v)) return '[' + v.map(stringify).join(', ') + ']';
+  return String(v);
+}
+
+function evalNode(node, env, output) {
+  const kind = node[0];
+  switch (kind) {
+    case 'block': { let r = null; for (const s of node[1]) r = evalNode(s, env, output); return r; }
+    case 'num': case 'str': case 'bool': return node[1];
+    case 'list': return node[1].map(it => evalNode(it, env, output));
+    case 'var': return env.get(node[1]);
+    case 'neg': return -evalNode(node[1], env, output);
+    case 'binop': {
+      const [, op, l, r] = node;
+      const left = evalNode(l, env, output), right = evalNode(r, env, output);
+      switch (op) {
+        case 'PLUS': return left + right;
+        case 'MINUS': return left - right;
+        case 'STAR': return left * right;
+        case 'SLASH':
+          if (right === 0) throw new MyLangError('Zero se taqseem nahi ho sakti');
+          return left / right;
+        case 'EQ': return left === right;
+        case 'NEQ': return left !== right;
+        case 'LT': return left < right;
+        case 'GT': return left > right;
+        case 'LE': return left <= right;
+        case 'GE': return left >= right;
+      }
+      break;
+    }
+    case 'index': {
+      const target = evalNode(node[1], env, output);
+      const idx = evalNode(node[2], env, output);
+      return target[idx | 0];
+    }
+    case 'input': { const v = window.prompt('Input:'); return v === null ? '' : v; }
+    case 'print': output.push({ text: stringify(evalNode(node[1], env, output)), error: false }); return null;
+    case 'assign': env.set(node[1], evalNode(node[2], env, output)); return null;
+    case 'index_assign': {
+      const target = env.get(node[1]);
+      target[evalNode(node[2], env, output) | 0] = evalNode(node[3], env, output);
+      return null;
+    }
+    case 'if': {
+      if (evalNode(node[1], env, output)) return evalNode(node[2], new Environment(env), output);
+      if (node[3] !== null) return evalNode(node[3], new Environment(env), output);
+      return null;
+    }
+    case 'while': {
+      let guard = 0;
+      while (evalNode(node[1], env, output)) {
+        evalNode(node[2], new Environment(env), output);
+        if (++guard > 100000) throw new MyLangError('Loop bohot lamba chal raha hai — rok diya gaya');
+      }
+      return null;
+    }
+    case 'foreach': {
+      const [, varName, listExpr, body] = node;
+      for (const item of evalNode(listExpr, env, output)) {
+        const loopEnv = new Environment(env);
+        loopEnv.define(varName, item);
+        evalNode(body, loopEnv, output);
+      }
+      return null;
+    }
+    case 'funcdef': env.define(node[1], new MyFunction(node[1], node[2], node[3], env)); return null;
+    case 'call': {
+      const [, name, argExprs] = node;
+      const func = env.get(name);
+      if (!(func instanceof MyFunction)) throw new MyLangError(`'${name}' function nahi hai`);
+      const args = argExprs.map(a => evalNode(a, env, output));
+      const callEnv = new Environment(func.closureEnv);
+      func.params.forEach((p, i) => callEnv.define(p, args[i]));
+      try { evalNode(func.body, callEnv, output); }
+      catch (e) { if (e instanceof ReturnSignal) return e.value; throw e; }
+      return null;
+    }
+    case 'return': throw new ReturnSignal(evalNode(node[1], env, output));
+    case 'try': {
+      const [, tryBlock, errName, catchBlock] = node;
+      try { evalNode(tryBlock, new Environment(env), output); }
+      catch (e) {
+        if (e instanceof ReturnSignal) throw e;
+        const catchEnv = new Environment(env);
+        catchEnv.define(errName, e.message || String(e));
+        evalNode(catchBlock, catchEnv, output);
+      }
+      return null;
+    }
+    case 'expr_stmt': return evalNode(node[1], env, output);
+  }
+  throw new MyLangError('Namaloom node: ' + kind);
+}
+
+function runProgram(source) {
+  const output = [];
+  try {
+    const ast = new Parser(tokenize(source)).parseProgram();
+    evalNode(ast, new Environment(), output);
+  } catch (e) {
+    output.push({ text: '❌ Ghalti: ' + (e.message || String(e)), error: true });
+  }
+  return output;
+}
+
+/* =========================================================
+   UI WIRING
+========================================================= */
+const SAMPLES = {
+  variables: `x = 5\ny = 10\nlikho x + y\nnaam = "Ali"\nlikho naam`,
+  loop: `i = 1\njabtak (i <= 5) {\n    likho i\n    i = i + 1\n}`,
+  function: `kaam banao jama(a, b) {\n    wapas a + b\n}\nlikho jama(4, 7)`,
+  list: `phal = ["seb", "kela", "anaar"]\nhar f mein phal {\n    likho f\n}\nlikho phal[0]`,
+  trycatch: `koshish {\n    x = 10 / 0\n} pakdo (ghalti) {\n    likho "Error pakda: " + ghalti\n}`,
+};
+
+const codeEl = document.getElementById('code');
+const outputEl = document.getElementById('output');
+const sampleSelect = document.getElementById('sample-select');
+
+codeEl.value = `# Yahan apna MyLang code likho\nnaam = "dost"\nlikho "Salam, " + naam\n\nkaam banao double(n) {\n    wapas n * 2\n}\nlikho double(21)`;
+
+function renderOutput(lines) {
+  outputEl.innerHTML = '';
+  if (lines.length === 0) {
+    outputEl.innerHTML = '<div class="empty">Koi output nahi — shayad program mein "likho" nahi hai.</div>';
+    return;
+  }
+  for (const l of lines) {
+    const div = document.createElement('div');
+    div.className = 'line' + (l.error ? ' error' : '');
+    div.textContent = l.text;
+    outputEl.appendChild(div);
+  }
+}
+
+document.getElementById('run').addEventListener('click', () => {
+  renderOutput(runProgram(codeEl.value));
+});
+
+document.getElementById('clear').addEventListener('click', () => {
+  outputEl.innerHTML = '<div class="empty">Run dabao aur output yahan dekho...</div>';
+});
+
+codeEl.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    renderOutput(runProgram(codeEl.value));
+  }
+});
+
+sampleSelect.addEventListener('change', () => {
+  if (sampleSelect.value && SAMPLES[sampleSelect.value]) {
+    codeEl.value = SAMPLES[sampleSelect.value];
+    sampleSelect.value = '';
+  }
+});
+</script>
+</body>
+</html>
